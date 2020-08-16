@@ -2,6 +2,12 @@
 Thumbs.db
 ehthumbs.db
 
+# Visual Studio 2019 files
+*.sqlite
+*.json
+*.config
+*.suo
+
 # Certificate files
 *.cer
 # Folder config file
@@ -56,4 +62,3 @@ $RECYCLE.BIN/
 Network Trash Folder
 Temporary Items
 .apdisk
-data/dsc/mof/cltsql1003.dev.adatum.com.mof.error
