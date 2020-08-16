@@ -256,6 +256,7 @@ Set-Location -Path $PSScriptRoot -Verbose
 Write-Output "Current directory has been changed to script root: $PSScriptRoot" -Verbose
 #endregion PATH
 
+#region Prompt for modules upgrade
 [string]$proceed = $null
 Write-Output ""
 $proceed = Read-Host -Prompt @"
@@ -277,6 +278,7 @@ elseif ($proceed -eq "Y" -OR $proceed -eq "YES")
 Remove-ARMDeployPSModule -ModuleToRemove $azureNonPreferredModule -Verbose
 # Get required PowerShellGallery.com modules.
 Get-ARMDeployPSModule -ModulesToInstall $azurePreferredModule -PSRepository $PSModuleRepository -Verbose
+#endregion
 
 #region Athenticate to Subscription
 Write-Output "Your browser authentication prompt for your subscription may be opened in the background. Please resize this window to see it and log in."
@@ -316,47 +318,18 @@ Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #region Test Configuration
 #endregion
 
-
-$connectionMessage = @"
-To log into your any of your lab virtual machines, use Azure bastion by logging into the portal at https://portal.azure.com, select the virtual machine, and click connect in the overview pane, then select the 'bastion' option
-and login with your credentials.
-
-The user name is: $adminUserName and specify the corresponding password you entered at the begining of this script.
-You can now use this lab to practice Windows PowerShell, Windows Desired State Configuration (push/pull), PowerShell core, Linux Desired State Configuration, Azure Automation and Azure Automation DSC tasks to develop these skills.
-For more details on what types of excercises you can practice, see the readme.md file in this GitHub repository at: https://github.com/autocloudarc/0026-azure-automation-plus-dsc-lab.
-If you like this script, follow me on GitHub at https://github.com/autocloudarc, send feedback or submit issues so we can build a better experience for everyone.
-Happy scripting...
-"@
-        Write-Output $connectionMessage
-        #endregion
-    }
-    else
-    {
-        $connectionMessage = @"
-Your RDP connection prompt will open auotmatically after you read this message and press Enter to continue...
-
-To log into your new automation lab jump server $jumpDevMachine, you must change your login name to: $adminUserName and specify the corresponding password you entered at the begining of this script.
-You can now use this lab to practice Windows PowerShell, Windows Desired State Configuration (push/pull), PowerShell core, Linux Desired State Configuration, Azure Automation and Azure Automation DSC tasks to develop these skills.
-For more details on what types of excercises you can practice, see the readme.md file in this GitHub repository at: https://github.com/autocloudarc/0026-azure-automation-plus-dsc-lab.
-If you like this script, follow me on GitHub at https://github.com/autocloudarc, send feedback or submit issues so we can build a better experience for everyone.
-Happy scripting...
-"@
-        Write-Output $connectionMessage
-        # Allow engineer to pause and read connection message before continuing
-        pause
-        # Open RDP prompt automatically
-        mstsc /v:$fqdnDev
-    } # end else
-
+#region Display Summary
 $StopTimer = Get-Date -Verbose
 Write-Output "Calculating elapsed time..."
 $ExecutionTime = New-TimeSpan -Start $BeginTimer -End $StopTimer
 $Footer = "TOTAL SCRIPT EXECUTION TIME: $ExecutionTime"
 Write-Output ""
 Write-Output $Footer
+#endregion
 
 } # end else if
 
+#region Cleanup Resources
 # Resource group and log files cleanup messages
 $labResourceGroupFilter = "rg??"
 Write-Warning "The list of PoC resource groups are:"
@@ -368,6 +341,7 @@ Write-Warning 'Get-AzResourceGroup -Name <YourResourceGroupName> | ForEach-Objec
 Write-Warning "Transcript logs are hosted in the directory: $LogDirectory to allow access for multiple users on this machine for diagnostic or auditing purposes."
 Write-Warning "To examine, archive or remove old log files to recover storage space, run this command to open the log files location: Start-Process -FilePath $LogDirectory"
 Write-Warning "You may change the value of the `$modulePath variable in this script, currently at: $modulePath to a common file server hosted share if you prefer, i.e. \\<server.domain.com>\<share>\<log-directory>"
+#endregion
 
 Stop-Transcript -Verbose
 
