@@ -23,7 +23,7 @@ PRE-REQUISITES:
 Inclue an Ubuntu server for this deployment.
 
 .EXAMPLE
-.\Deploy-AzureResourceGroup.ps1 -excludeWeb yes -excludeSql yes -excludeAds yes -excludePki yes -includeUbuntu yes -Verbose
+.\Deploy-AzResourceGroup.ps1 -excludeWeb yes -excludeSql yes -excludeAds yes -excludePki yes -includeUbuntu yes -Verbose
 
 .INPUTS
 None
