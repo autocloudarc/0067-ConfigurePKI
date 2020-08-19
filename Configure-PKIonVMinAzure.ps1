@@ -69,7 +69,8 @@ param
     [string]$sourceDirectory = "dsc",
     [string[]]$filesToDownload = @("PkiConfig.ps1"),
     [string]$aaaName = "aaa-1c5dce57-10",
-    
+    [string]$rgpName = "rg10"
+
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -175,7 +176,7 @@ function Get-PSGalleryModule
 	} #end foreach
 } #end function
 
-# TASK-ITEM: Customize funciton
+# TASK-ITEM: Add function to ARMDeploy module
 function Get-GitHubRepositoryFile
 {
 <#
@@ -342,7 +343,8 @@ Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBr
 #endregion
 
 #region Import Configuration
-
+$localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $filesToDownload[0]
+Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGroupName $rgpName -SourcePath $localConfigurationFilePath -Published -Confirm:$false -LogVerbose $true -Verbose -Force
 #endregion
 
 #region Compile Configuration
