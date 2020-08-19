@@ -3,7 +3,7 @@
 
 using Namespace System
 using Namespace System.Net # for IP addresses
-Using Namespace System.Runtime.InteropServices # # For Azure AD service principals marshal clas
+Using Namespace System.Runtime.InteropServices # # For Azure AD service principals marshal class
 Using Namespace Microsoft.Azure.Commands.Management.Storage.Models # for Azure storage
 Using Namespace Microsoft.Azure.Commands.Network.Models # for Azure network resources
 <#
@@ -44,7 +44,6 @@ We grant You a nonexclusive, royalty-free right to use and modify the Sample Cod
 This posting is provided "AS IS" with no warranties, and confers no rights.
 
 .LINK
-1. https://gist.github.com/chrisbrownie/f20cb4508975fb7fb5da145d3d38024a
 
 .COMPONENT
 PKI, Active Directory Certificate Services, Desired State Configuration, Azure Infrastructure, PowerShell, Azure Automation
@@ -64,6 +63,13 @@ Deploys an Azure automation lab infrastructure
 [CmdletBinding()]
 param
 (
+    [string]$repoOwner = "autocloudarc",
+    [string]$repoName = "0067-ConfigurePKI",
+    [string]$repoBranch = "master",
+    [string]$sourceDirectory = "dsc",
+    [string[]]$filesToDownload = @("PkiConfig.ps1"),
+    [string]$aaaName = "aaa-1c5dce57-10",
+    
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -170,51 +176,86 @@ function Get-PSGalleryModule
 } #end function
 
 # TASK-ITEM: Customize funciton
-function Get-GitHubRepoFiles
+function Get-GitHubRepositoryFile
 {
 <#
-    Original function inspired by and credit goes to Chris Brown. Thank you Chris! Source: https://gist.github.com/chrisbrownie/f20cb4508975fb7fb5da145d3d38024a
+.Synopsis
+   Download selected files from a Github repository to a local directory or share
+.DESCRIPTION
+   This function downloads a specified set of files from a Github repository to a local drive or share, which can include a *.zipped file
+.EXAMPLE
+   Get-GithubRepositoryFiles -Owner <Owner> -Repository <Repository> -Branch <Branch> -Files <Files[]> -DownloadTargetDirectory <DownloadTargetDirectory>
+.NOTES
+    Author: Preston K. Parsard; https://github.com/autocloudarc
+    Ispired by: Josh Rickard;
+        1. https://github.com/MSAdministrator
+        2. https://raw.githubusercontent.com/MSAdministrator/GetGithubRepository
+    REQUIREMENTS:
+    1. The repository from which the script artifacts are downloaded must be public to avoid  authentication
+.LINK
+    http://windowsitpro.com/powershell/use-net-webclient-class-powershell-scripts-access-web-data
+    http://windowsitpro.com/site-files/windowsitpro.com/files/archive/windowsitpro.com/content/content/99043/listing_03.txt
 #>
-Param
-(
-    [string]$repoOwner,
-    [string]$repoName,
-    [string]$repoPath,
-    [string]$fileToDownload,
-    [string]$targetPath
-) # end param
+    [CmdletBinding()]
+    Param
+    (
+        # Please provide the repository owner
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [string]$Owner,
 
-    $baseUri = "https://api.github.com/"
-    $uriArgs = "repos/$repoOwner/$repoName/contents/$repoPath"
-    $uri = $baseUri+$uriArgs
-    $webRequest = Invoke-WebRequest -Uri $uri
-    $objects = $webRequest.Content | ConvertFrom-Json
-    $desiredFile = $objects | Where-Object {$_.name -eq $fileToDownload} | Select-Object -Property -exp download_url
+        # Please provide the name of the repository
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [string]$Repository,
 
-    if (-not (Test-Path $targetPath))
+        # Please provide a branch to download from
+        [Parameter(Mandatory=$false)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [string]$Branch,
+
+        # Please provide a folder in GitHub where the file is located.
+        [string]$Directory,
+
+        # Please provide the list of files to download
+        [Parameter(Mandatory=$true)]
+        [ValidateNotNull()]
+        [ValidateNotNullOrEmpty()]
+        [string[]]$Files,
+
+        # Please provide a local target path for the GitHub files and folders
+        [Parameter(Mandatory=$true,
+                   Position=4,
+                   HelpMessage = "Please provide a local target directory for the GitHub files and folders")]
+        [string]$DownloadTargetDirectory
+    ) #end param
+
+    Begin
     {
-        # Destination path does not exist, let's create it
-        try
+        # Write-WithTime -Output "Downloading and installing" -Log $Log
+        Write-Output "Downloading and installing"
+        $wc = [System.Net.WebClient]::new()
+        $RawGitHubUriPrefix = "https://raw.githubusercontent.com"
+    } #end begin
+    Process
+    {
+        foreach ($File in $Files)
         {
-            New-Item -Path $targetPath -ItemType Directory -ErrorAction Stop
-        } # end try
-        catch
-        {
-            throw "Could not create path '$targetPath'!"
-        } # end catch
-    } # end if
-
-    $fileDestination = Join-Path $targetPath (Split-Path $desiredFile -Leaf)
-    try
+            Write-Output "Processing $File..."
+            # File download
+            $uri = $RawGitHubUriPrefix, $Owner, $Repository, $Branch, $sourceDirectory, $File -Join "/"
+            Write-Output "Attempting to download from $uri"
+            $DownloadTargetPath = Join-Path -Path $DownloadTargetDirectory -ChildPath $File
+            $wc.DownloadFile($uri, $DownloadTargetPath)
+        } #end foreach
+    } #end process
+    End
     {
-        Invoke-WebRequest -Uri $desiredFile -OutFile $fileDestination -ErrorAction Stop -Verbose
-        "Retrieved '$($desiredFile)' to '$fileDestination'"
-    } # end try
-    catch
-    {
-        throw "Unable to download '$($desiredFile.path)'"
-    } # end catch
-} # end function
+    } #end end
+} #end function
 
 #endregion FUNCTIONS
 
@@ -297,10 +338,11 @@ Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #endregion
 
 #region Retrieve Configuration
-
+Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBranch -Directory $sourceDirectory -Files $filesToDownload -DownloadTargetDirectory $LogDirectory -Verbose
 #endregion
 
-#region Upload Configuration
+#region Import Configuration
+
 #endregion
 
 #region Compile Configuration
