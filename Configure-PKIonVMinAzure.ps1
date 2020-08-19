@@ -69,8 +69,8 @@ param
     [string]$sourceDirectory = "dsc",
     [string[]]$filesToDownload = @("PkiConfig.ps1"),
     [string]$aaaName = "aaa-1c5dce57-10",
-    [string]$rgpName = "rg10"
-
+    [string]$rgpName = "rg10",
+    [string]$adminUserName = "adm.infra.user@dev.adatum.com"
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -336,6 +336,13 @@ Do
 } #end Do
 Until ($Subscription -in (Get-AzSubscription).Name)
 Select-AzSubscription -SubscriptionName $Subscription -Verbose
+#endregion
+
+#region Prompt for DSC credentials
+<#
+$adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
+$adminPassword = $adminCred.GetNetworkCredential().password
+#>
 #endregion
 
 #region Retrieve Configuration
