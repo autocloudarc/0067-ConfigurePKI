@@ -44,6 +44,7 @@ We grant You a nonexclusive, royalty-free right to use and modify the Sample Cod
 This posting is provided "AS IS" with no warranties, and confers no rights.
 
 .LINK
+1. https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#:~:text=%20Compile%20a%20DSC%20configuration%20in%20Azure%20State,parameters.%20Parameter%20declaration%20in%20DSC%20configurations%2C...%20More%20
 
 .COMPONENT
 PKI, Active Directory Certificate Services, Desired State Configuration, Azure Infrastructure, PowerShell, Azure Automation
@@ -69,8 +70,7 @@ param
     [string]$sourceDirectory = "dsc",
     [string[]]$filesToDownload = @("PkiConfig.ps1"),
     [string]$aaaName = "aaa-1c5dce57-10",
-    [string]$rgpName = "rg10",
-    [string]$adminUserName = "adm.infra.user@dev.adatum.com"
+    [string]$rgpName = "rg10"
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -109,7 +109,6 @@ Write-Output "Configuring security protocol to use TLS 1.2 for Nuget support whe
 #endregion
 
 #region FUNCTIONS
-
 function New-ARMDeployTranscript
 {
     [CmdletBinding()]
@@ -339,10 +338,9 @@ Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #endregion
 
 #region Prompt for DSC credentials
-<#
+$adminUserName = Read-Host "Enter administrator user name for PKI server configuration"
 $adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
 $adminPassword = $adminCred.GetNetworkCredential().password
-#>
 #endregion
 
 #region Retrieve Configuration
@@ -355,6 +353,15 @@ Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGro
 #endregion
 
 #region Compile Configuration
+$configName = $filesToDownload[0].Split(".")[0]
+$CompilationJob = Start-AzAutomationDscCompilationJob -ResourceGroupName $rgpName -AutomationAccountName $aaaName -ConfigurationName $configName -Verbose
+while($null -eq $CompilationJob.EndTime -and $null -eq $CompilationJob.Exception)
+{
+    $CompilationJob = $CompilationJob | Get-AzAutomationDscCompilationJob
+    Start-Sleep -Seconds 3
+} # end while
+
+$CompilationJob | Get-AzAutomationDscCompilationJobOutput –Stream Any
 #endregion
 
 #region Onboard VM
