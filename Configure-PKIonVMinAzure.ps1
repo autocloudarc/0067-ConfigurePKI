@@ -340,6 +340,7 @@ Until ($Subscription -in (Get-AzSubscription).Name)
 Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #endregion
 
+# TASK-ITEM: Add credentials as an Azure Automation credential asset.
 #region Prompt for DSC credentials
 $adminUserName = Read-Host "Enter administrator user name for PKI server configuration"
 $adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
@@ -372,6 +373,10 @@ $CompilationJob | Get-AzAutomationDscCompilationJobOutput –Stream Any
 #endregion
 
 #region Onboard VM
+# https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-overview
+$aaaDscPullServerUrl = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).Endpoint
+$aaaDscPullServerKey = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).PrimaryKey
+$nodeConfigurationName = ($CompilationJob).ConfigurationName + ".localhost"
 #endregion
 
 #region Apply Configuration
