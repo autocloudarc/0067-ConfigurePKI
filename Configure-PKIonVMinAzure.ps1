@@ -71,7 +71,8 @@ param
     [string[]]$filesToDownload = @("PkiConfig.ps1"),
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
-    [string]$rgpName = "rg10"
+    [string]$rgpName = "rg10",
+    [string[]]$modulesForAzureAutomation = @("ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage")
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -351,6 +352,10 @@ Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBr
 #region Import Configuration
 $localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $filesToDownload[0]
 Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGroupName $rgpName -SourcePath $localConfigurationFilePath -Published -Confirm:$false -LogVerbose $true -Verbose -Force
+#endregion
+
+#region Import DSC Resource modules into Automation account
+New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzureAutomation -AutomationAccountName $aaaName -Verbose
 #endregion
 
 #region Compile Configuration
