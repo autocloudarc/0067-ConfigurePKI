@@ -315,12 +315,11 @@ if ($proceed -eq "N" -OR $proceed -eq "NO")
 } #end if ne Y
 elseif ($proceed -eq "Y" -OR $proceed -eq "YES")
 {
-[string]$azurePreferredModule = "Az"
-[string]$azureNonPreferredModule = "AzureRM"
+[string]$localModulesToInstall = @("Az","AzureAutomation")
 # https://docs.microsoft.com/en-us/powershell/azure/new-azureps-module-az?view=azps-1.1.0
 Remove-ARMDeployPSModule -ModuleToRemove $azureNonPreferredModule -Verbose
 # Get required PowerShellGallery.com modules.
-Get-ARMDeployPSModule -ModulesToInstall $azurePreferredModule -PSRepository $PSModuleRepository -Verbose
+Get-ARMDeployPSModule -ModulesToInstall $localModulesToInstall -PSRepository $PSModuleRepository -Verbose
 #endregion
 
 #region Athenticate to Subscription
