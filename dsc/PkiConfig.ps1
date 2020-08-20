@@ -1,4 +1,4 @@
-Configuration PkiConfig.ps1
+Configuration PkiConfig
 {
     $domainAdminCred = Get-AutomationPSCredential 'domainAdminCred'
 

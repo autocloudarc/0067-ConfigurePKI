@@ -69,6 +69,7 @@ param
     [string]$repoBranch = "master",
     [string]$sourceDirectory = "dsc",
     [string[]]$filesToDownload = @("PkiConfig.ps1"),
+    [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg10"
 ) # end param
