@@ -341,6 +341,21 @@ Until ($Subscription -in (Get-AzSubscription).Name)
 Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #endregion
 
+#region Prompt for target VM name
+Do
+{
+    $vmList = Get-AzVM -ResourceGroupName $rgpName -Verbose
+    Write-Output $header.SeparatorDouble
+    Write-Output "The list of Azure VMs in resource group $rgpName are:"
+    Write-Output $header.SeparatorDouble
+    $vmList.Name
+    Write-Output $header.SeparatorSingle
+    $targetVMName = Read-Host "Enter target Widnows 2019 VM that will be configured as an PKI server (Active Directory Certificate Services)"
+    Write-Output $header.SeparatorSingle
+} # end do
+Until ($targetVMName -in $vmlist.name)
+#endregion
+
 #region Prompt for DSC credentials
 $adminUserName = Read-Host "Enter administrator user name for PKI server configuration"
 $adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
@@ -386,8 +401,8 @@ Register-AzAutomationDscNode -ResourceGroupName $rgpName `
 -ConfigurationMode ApplyAndAutocorrect `
 -ActionAfterReboot ContinueConfiguration `
 -NodeConfigurationName $nodeConfigurationName `
--AzureVMName $paramDSCNodeName `
--AzureVMResourceGroup $paramVMResourceGroupName `
+-AzureVMName $targetVMName `
+-AzureVMResourceGroup $rgpName `
 -RebootNodeIfNeeded:$true `
 -AllowModuleOverwrite:$true
 #endregion
