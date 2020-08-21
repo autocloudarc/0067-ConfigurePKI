@@ -73,7 +73,8 @@ param
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg10",
     [string[]]$modulesForAzureAutomation = @("ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
-    [string]$PSModuleRepository = "PSGallery"
+    [string]$PSModuleRepository = "PSGallery",
+    [string]$domainAdminCred = 'domainAdminCred'
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -340,11 +341,12 @@ Until ($Subscription -in (Get-AzSubscription).Name)
 Select-AzSubscription -SubscriptionName $Subscription -Verbose
 #endregion
 
-# TASK-ITEM: Add credentials as an Azure Automation credential asset.
 #region Prompt for DSC credentials
 $adminUserName = Read-Host "Enter administrator user name for PKI server configuration"
 $adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
 $adminPassword = $adminCred.GetNetworkCredential().password
+# Send automation credential for DSC configuration to automation account
+New-AzAutomationCredential -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $domainAdminCred -Value $adminCred -Verbose
 #endregion
 
 #region Retrieve Configuration
@@ -361,6 +363,7 @@ New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzu
 #endregion
 
 #region Compile Configuration
+# https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#compile-a-dsc-configuration-in-azure-state-configuration
 $configName = $filesToDownload[0].Split(".")[0]
 $CompilationJob = Start-AzAutomationDscCompilationJob -ResourceGroupName $rgpName -AutomationAccountName $aaaName -ConfigurationName $configName -Verbose
 while($null -eq $CompilationJob.EndTime -and $null -eq $CompilationJob.Exception)
@@ -377,6 +380,16 @@ $CompilationJob | Get-AzAutomationDscCompilationJobOutput –Stream Any
 $aaaDscPullServerUrl = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).Endpoint
 $aaaDscPullServerKey = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).PrimaryKey
 $nodeConfigurationName = ($CompilationJob).ConfigurationName + ".localhost"
+
+Register-AzAutomationDscNode -ResourceGroupName $rgpName `
+-AutomationAccountName $aaaName `
+-ConfigurationMode ApplyAndAutocorrect `
+-ActionAfterReboot ContinueConfiguration `
+-NodeConfigurationName $nodeConfigurationName `
+-AzureVMName $paramDSCNodeName `
+-AzureVMResourceGroup $paramVMResourceGroupName `
+-RebootNodeIfNeeded:$true `
+-AllowModuleOverwrite:$true
 #endregion
 
 #region Apply Configuration
