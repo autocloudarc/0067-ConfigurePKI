@@ -72,7 +72,7 @@ param
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg10",
-    [string[]]$modulesForAzureAutomation = @("ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
+    [string[]]$modulesForAzureAutomation = @("Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
     [string]$PSModuleRepository = "PSGallery",
     [string]$domainAdminCred = 'domainAdminCred'
 ) # end param
@@ -373,8 +373,15 @@ $localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $filesToDownloa
 Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGroupName $rgpName -SourcePath $localConfigurationFilePath -Published -Confirm:$false -LogVerbose $true -Verbose -Force
 #endregion
 
-#region Import DSC Resource modules into Automation account
-New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzureAutomation -AutomationAccountName $aaaName -Verbose
+#region Import DSC Resource modules into Automation account if it has not already been imported.
+foreach ($automationModule in $modulesForAzureAutomation)
+{
+    $moduleName = (Get-AzAutomationModule -AutomationAccountName $aaaName -Name $automationModule -ResourceGroupName $rgpName).Name
+    if (-not($moduleName -eq $automationModule))
+    {
+        New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzureAutomation -AutomationAccountName $aaaName -Verbose
+    } # end if
+} # end foreach
 #endregion
 
 #region Compile Configuration
@@ -407,13 +414,18 @@ Register-AzAutomationDscNode -ResourceGroupName $rgpName `
 -AllowModuleOverwrite:$true
 #endregion
 
-#region Apply Configuration
-#endregion
-
 #region Report Configuration
-#endregion
-
-#region Test Configuration
+# https://docs.microsoft.com/en-us/azure/automation/troubleshoot/desired-state-configuration
+# https://github.com/Azure/azure-powershell/issues/10404
+$dscNode = Get-AzAutomationDscNode -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $targetVMName
+do
+{
+    Write-Output $SeparatorSingle
+    Write-Output "Getting DSC configuration status..."
+    $getDscConfigStatus = Get-AzAutomationDscNodeReport -ResourceGroupName $rgpName -AutomationAccountName $aaaName -NodeId $dscNode.Id -Latest -Verbose
+    $getDscConfigStatus
+    Start-Sleep -Seconds 5 -Verbose
+} While ($getDscConfigStatus.Status -eq 'Pending')
 #endregion
 
 #region Display Summary
@@ -439,6 +451,9 @@ Write-Warning 'Get-AzResourceGroup -Name <YourResourceGroupName> | ForEach-Objec
 Write-Warning "Transcript logs are hosted in the directory: $LogDirectory to allow access for multiple users on this machine for diagnostic or auditing purposes."
 Write-Warning "To examine, archive or remove old log files to recover storage space, run this command to open the log files location: Start-Process -FilePath $LogDirectory"
 Write-Warning "You may change the value of the `$modulePath variable in this script, currently at: $modulePath to a common file server hosted share if you prefer, i.e. \\<server.domain.com>\<share>\<log-directory>"
+Write-Output $SeparatorSingle
+Write-Output "To verify that the Certificate Server is installed "
+
 #endregion
 
 Stop-Transcript -Verbose
