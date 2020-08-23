@@ -68,7 +68,7 @@ param
     [string]$repoName = "0067-ConfigurePKI",
     [string]$repoBranch = "master",
     [string]$sourceDirectory = "dsc",
-    [string[]]$filesToDownload = @("PkiConfig.ps1"),
+    [string[]]$filesToDownload = @("PkiConfig.ps1","PkiConfigData.psd1","PkiRevert.ps1","PkiRevertData.psd1"),
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg10",
@@ -387,6 +387,7 @@ foreach ($automationModule in $modulesForAzureAutomation)
 #region Compile Configuration
 # https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#compile-a-dsc-configuration-in-azure-state-configuration
 $configName = $filesToDownload[0].Split(".")[0]
+$pkiConfigData = Import-PowerShellDataFile  -Path
 $CompilationJob = Start-AzAutomationDscCompilationJob -ResourceGroupName $rgpName -AutomationAccountName $aaaName -ConfigurationName $configName -Verbose
 while($null -eq $CompilationJob.EndTime -and $null -eq $CompilationJob.Exception)
 {
