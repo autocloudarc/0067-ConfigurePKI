@@ -8,64 +8,44 @@ Configuration PkiConfig
     Import-DscResource -ModuleName xPendingReboot
     Import-DscResource -ModuleName xStorage
 
-    $dirPki = "f:\pki"
-    $dirDb = "f:\pki\db"
-    $dirLog = "f:\pki\log"
-    $dirExport = "f:\pki\export"
-    $diskId = '2'
-    $diskDriveLetter = 'f'
-    $fslabel = 'data'
-    $fileType = 'Directory'
-    $eca = 'EnterpriseRootCA'
-    $singleInstance = 'Yes'
-    $ensure = 'Present'
-    $CACommonName = 'pki01'
-    $CADistinguishedNameSuffix = 'DC=autocloudarc,DC=ddns,DC=net'
-    $cryptoProvider = 'RSA#Microsoft Software Key Storage Provider'
-    $hashAlgorithm = 'SHA256'
-    $keyLength = 4096
-    $overwrite = $true
-    $periodUnits = 'Years'
-    $periodValue = 2
-
     Node localhost
     {
         xDisk ConfigureDataDisk
         {
-            DiskId = $diskId
-            DriveLetter = $diskDriveLetter
-            FSLabel = $fsLabel
+            DiskId = $node.diskId
+            DriveLetter = $node.diskDriveLetter
+            FSLabel = $node.fsLabel
         } # end resource
 
         File dirPki
         {
-            Ensure = $ensure
-            Type = $fileType
-            DestinationPath = $dirPki
+            Ensure = $node.ensure
+            Type = $node.fileType
+            DestinationPath = $node.dirPki
             DependsOn = "[xDisk]ConfigureDataDisk"
         } # end resource
 
         File dirDb
         {
-            Ensure = $ensure
-            Type = $fileType
-            DestinationPath = $dirDb
+            Ensure = $node.ensure
+            Type = $node.fileType
+            DestinationPath = $node.dirDb
             DependsOn = "[File]DirPki"
         } # end resource
 
         File dirLog
         {
-            Ensure = $ensure
-            Type = $fileType
-            DestinationPath = $dirLog
+            Ensure = $node.ensure
+            Type = $node.fileType
+            DestinationPath = $node.dirLog
             DependsOn = "[File]DirPki"
         } # end resource
 
         File dirExport
         {
-            Ensure = $ensure
-            Type = $fileType
-            DestinationPath = $dirExport
+            Ensure = $node.ensure
+            Type = $node.fileType
+            DestinationPath = $node.dirExport
             DependsOn = "[File]DirPki"
         } # end resource
 
@@ -73,42 +53,42 @@ Configuration PkiConfig
         WindowsFeature ADCSCA
         {
             Name = 'ADCS-Cert-Authority'
-            Ensure = $ensure
+            Ensure = $node.ensure
             DependsOn = @("[File]dirPki","[File]dirDb","[File]dirLog","[File]dirExport")
         } # end resource
 
         # Configure the CA as Standalone Root CA
         AdcsCertificationAuthority ConfigureCA
         {
-            IsSingleInstance = $singleInstance
-            CAType = $eca
+            IsSingleInstance = $node.singleInstance
+            CAType = $ndoe.eca
             Credential = $domainAdminCred
-            Ensure = $ensure
-            CACommonName = $CACommonName
-            CADistinguishedNameSuffix = $CADistinguishedNameSuffix
-            CryptoProviderName = $cryptoProvider
-            DatabaseDirectory = $dbPath
-            HashAlgorithmName = $hashAlgorithm
-            KeyLength = $keyLength
-            LogDirectory = $logPath
-            OutputCertRequestFile = $exportPath
-            OverwriteExistingDatabase = $overwrite
-            ValidityPeriod = $periodUnits
-            ValidityPeriodUnits = $periodValue
-            PsDscRunAsCredential = $domainAdminCred
+            Ensure = $node.ensure
+            CACommonName = $node.CACommonName
+            CADistinguishedNameSuffix = $node.CADistinguishedNameSuffix
+            CryptoProviderName = $node.cryptoProvider
+            DatabaseDirectory = $node.dbPath
+            HashAlgorithmName = $node.hashAlgorithm
+            KeyLength = $node.keyLength
+            LogDirectory = $node.logPath
+            OutputCertRequestFile = $node.exportPath
+            OverwriteExistingDatabase = $node.overwrite
+            ValidityPeriod = $node.periodUnits
+            ValidityPeriodUnits = $node.periodValue
+            PsDscRunAsCredential = $node.domainAdminCred
             DependsOn = "[WindowsFeature]ADCSCA"
         } # end resource
 
         WindowsFeature RSAT-ADCS
         {
-            Ensure = $ensure
+            Ensure = $node.ensure
             Name = "RSAT-ADCS"
             DependsOn = @('[WindowsFeature]ADCSCA','[AdcsCertificationAuthority]ConfigureCA')
         } # end resource
 
         WindowsFeature RSAT-ADCS-Mgmt
         {
-            Ensure = $ensure
+            Ensure = $node.ensure
             Name = "RSAT-ADCS-Mgmt"
             DependsOn = @('[WindowsFeature]ADCSCA','[AdcsCertificationAuthority]ConfigureCA')
         } # end resource

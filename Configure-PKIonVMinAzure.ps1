@@ -68,13 +68,18 @@ param
     [string]$repoName = "0067-ConfigurePKI",
     [string]$repoBranch = "master",
     [string]$sourceDirectory = "dsc",
-    [string[]]$filesToDownload = @("PkiConfig.ps1","PkiConfigData.psd1","PkiRevert.ps1","PkiRevertData.psd1"),
+    [string]$configurationFile = "PkiConfig.ps1",
+    [string]$configDataFile = "PkiConfigData.psd1",
+    [string]$revertDataFile = "PkiRevertData.psd1",
+    [string[]]$filesToDownload = @($configurationFile,$configDataFile,$revertDataFile),
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg10",
     [string[]]$modulesForAzureAutomation = @("Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
     [string]$PSModuleRepository = "PSGallery",
-    [string]$domainAdminCred = 'domainAdminCred'
+    [string]$domainAdminCred = 'domainAdminCred',
+    [ValidateSet("yes","no")]
+    [string]$resetConfig = "no"
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -369,7 +374,7 @@ Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBr
 #endregion
 
 #region Import Configuration
-$localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $filesToDownload[0]
+$localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $configurationFile
 Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGroupName $rgpName -SourcePath $localConfigurationFilePath -Published -Confirm:$false -LogVerbose $true -Verbose -Force
 #endregion
 
@@ -386,9 +391,24 @@ foreach ($automationModule in $modulesForAzureAutomation)
 
 #region Compile Configuration
 # https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#compile-a-dsc-configuration-in-azure-state-configuration
-$configName = $filesToDownload[0].Split(".")[0]
-$pkiConfigData = Import-PowerShellDataFile  -Path
-$CompilationJob = Start-AzAutomationDscCompilationJob -ResourceGroupName $rgpName -AutomationAccountName $aaaName -ConfigurationName $configName -Verbose
+$configName = $configurationFile.Split(".")[0]
+
+$pkiConfigDataPath = $null
+
+if ($resetConfig -eq "no")
+{
+    # Apply configuration to create PKI server
+    $pkiConfigDataPath = Join-Path -Path $LogDirectory -ChildPath $configDataFile
+} # end if
+else
+{
+    # Revert configuration to reset (uninstall) PKI server as a rollback capability for change control backout plan or just to reset for testing.
+    $pkiConfigDataPath = Join-Path -Path $LogDirectory -ChildPath $revertDataFile
+} # end else
+
+# https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/import-powershelldatafile?view=powershell-7
+$pkiConfigData = Import-PowerShellDataFile  -Path $pkiConfigDataPath
+$CompilationJob = Start-AzAutomationDscCompilationJob -ResourceGroupName $rgpName -AutomationAccountName $aaaName -ConfigurationName $configName -ConfigurationData $pkiConfigData -Verbose
 while($null -eq $CompilationJob.EndTime -and $null -eq $CompilationJob.Exception)
 {
     $CompilationJob = $CompilationJob | Get-AzAutomationDscCompilationJob
