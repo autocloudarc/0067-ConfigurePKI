@@ -406,12 +406,15 @@ $nodeConfigurationName = ($CompilationJob).ConfigurationName + ".localhost"
 Register-AzAutomationDscNode -ResourceGroupName $rgpName `
 -AutomationAccountName $aaaName `
 -ConfigurationMode ApplyAndAutocorrect `
--ActionAfterReboot ContinueConfiguration `
--NodeConfigurationName $nodeConfigurationName `
--AzureVMName $targetVMName `
--AzureVMResourceGroup $rgpName `
 -RebootNodeIfNeeded:$true `
--AllowModuleOverwrite:$true
+-AllowModuleOverwrite:$true `
+-ActionAfterReboot ContinueConfiguration `
+-ConfigurationModeFrequenceyMins 15 `
+-RefreshFrequencyMins 30 `
+-NodeConfigurationName $nodeConfigurationName `
+-AzureVMResourceGroup $rgpName `
+-AzureVMName $targetVMName `
+-Verbose
 #endregion
 
 #region Report Configuration
