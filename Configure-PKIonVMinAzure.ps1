@@ -455,7 +455,6 @@ elseif ($nodeRegistration.Name -eq $targetVMName)
     Write-Output "VM: $targetVMName has already been registered as a node. Skipping node registrtaion."
 } # end else
 
-} # end else
 #endregion
 
 #region Report Configuration
