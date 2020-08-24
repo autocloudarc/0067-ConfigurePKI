@@ -61,6 +61,20 @@ Configuration PkiConfig
             DependsOn = @("[File]dirPki","[File]dirDb","[File]dirLog","[File]dirExport")
         } # end resource
 
+        WindowsFeature RSAT-ADCS
+        {
+            Ensure = $node.ensure
+            Name = "RSAT-ADCS"
+            DependsOn = @('[WindowsFeature]ADCSCA')
+        } # end resource
+
+        WindowsFeature RSAT-ADCS-Mgmt
+        {
+            Ensure = $node.ensure
+            Name = "RSAT-ADCS-Mgmt"
+            DependsOn = @('[WindowsFeature]ADCSCA')
+        } # end resource
+
         # Configure the CA as Standalone Root CA
         AdcsCertificationAuthority ConfigureCA
         {
@@ -81,20 +95,6 @@ Configuration PkiConfig
             ValidityPeriodUnits = $node.periodValue
             PsDscRunAsCredential = $node.domainAdminCred
             DependsOn = "[WindowsFeature]ADCSCA"
-        } # end resource
-
-        WindowsFeature RSAT-ADCS
-        {
-            Ensure = $node.ensure
-            Name = "RSAT-ADCS"
-            DependsOn = @('[WindowsFeature]ADCSCA','[AdcsCertificationAuthority]ConfigureCA')
-        } # end resource
-
-        WindowsFeature RSAT-ADCS-Mgmt
-        {
-            Ensure = $node.ensure
-            Name = "RSAT-ADCS-Mgmt"
-            DependsOn = @('[WindowsFeature]ADCSCA','[AdcsCertificationAuthority]ConfigureCA')
         } # end resource
 
         xPendingReboot Reboot1
