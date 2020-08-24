@@ -429,18 +429,33 @@ $aaaDscPullServerUrl = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgp
 $aaaDscPullServerKey = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).PrimaryKey
 $nodeConfigurationName = ($CompilationJob).ConfigurationName + ".localhost"
 
-Register-AzAutomationDscNode -ResourceGroupName $rgpName `
--AutomationAccountName $aaaName `
--ConfigurationMode ApplyAndAutocorrect `
--RebootNodeIfNeeded:$true `
--AllowModuleOverwrite:$true `
--ActionAfterReboot ContinueConfiguration `
--ConfigurationModeFrequencyMins 15 `
--RefreshFrequencyMins 30 `
--NodeConfigurationName $nodeConfigurationName `
--AzureVMResourceGroup $rgpName `
--AzureVMName $targetVMName `
--Verbose
+$nodeRegistration = $null
+
+Write-Output "Checking for node registration of VM: $targetVMName"
+$nodeRegistration = Get-AzAutomationDscNode -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $targetVMName
+
+if (-not($nodeRegistration))
+{
+    Write-Output "VM: $targetVMName has not yet been registered as a node. Registering now..."
+    Register-AzAutomationDscNode -ResourceGroupName $rgpName `
+    -AutomationAccountName $aaaName `
+    -ConfigurationMode ApplyAndAutocorrect `
+    -RebootNodeIfNeeded:$true `
+    -AllowModuleOverwrite:$true `
+    -ActionAfterReboot ContinueConfiguration `
+    -ConfigurationModeFrequencyMins 15 `
+    -RefreshFrequencyMins 30 `
+    -NodeConfigurationName $nodeConfigurationName `
+    -AzureVMResourceGroup $rgpName `
+    -AzureVMName $targetVMName `
+    -Verbose
+} # end if
+elseif ($nodeRegistration.Name -eq $targetVMName)
+{
+    Write-Output "VM: $targetVMName has already been registered as a node. Skipping node registrtaion."
+} # end else
+
+} # end else
 #endregion
 
 #region Report Configuration
