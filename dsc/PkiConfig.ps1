@@ -100,6 +100,7 @@ Configuration PkiConfig
         xPendingReboot Reboot1
         {
             Name = "RebootServer"
+            SkipCcmClientSDK = $true
             DependsOn = @("[WindowsFeature]RSAT-ADCS","[WindowsFeature]RSAT-ADCS-Mgmt")
         } # end resource
     } # end node
