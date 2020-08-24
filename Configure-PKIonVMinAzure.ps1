@@ -79,9 +79,7 @@ param
     [string]$rgpName = "rg10",
     [string[]]$modulesForAzureAutomation = @("Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
     [string]$PSModuleRepository = "PSGallery",
-    [string]$domainAdminCred = 'domainAdminCred',
-    [ValidateSet("yes","no")]
-    [string]$resetConfig = "no"
+    [string]$domainAdminCred = 'domainAdminCred'
 ) # end param
 
 $BeginTimer = Get-Date -Verbose
@@ -399,18 +397,7 @@ foreach ($automationModule in $modulesForAzureAutomation)
 # https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#compile-a-dsc-configuration-in-azure-state-configuration
 $configName = $configurationFile.Split(".")[0]
 
-$pkiConfigDataPath = $null
-
-if ($resetConfig -eq "no")
-{
-    # Apply configuration to create PKI server
-    $pkiConfigDataPath = Join-Path -Path $LogDirectory -ChildPath $configDataFile
-} # end if
-else
-{
-    # Revert configuration to reset (uninstall) PKI server as a rollback capability for change control backout plan or just to reset for testing.
-    $pkiConfigDataPath = Join-Path -Path $LogDirectory -ChildPath $revertDataFile
-} # end else
+$pkiConfigDataPath = Join-Path -Path $LogDirectory -ChildPath $configDataFile
 
 # https://docs.microsoft.com/en-us/powershell/module/microsoft.powershell.utility/import-powershelldatafile?view=powershell-7
 $pkiConfigData = Import-PowerShellDataFile  -Path $pkiConfigDataPath
