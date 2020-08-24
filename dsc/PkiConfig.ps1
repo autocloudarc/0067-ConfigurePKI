@@ -97,11 +97,25 @@ Configuration PkiConfig
             DependsOn = "[WindowsFeature]ADCSCA"
         } # end resource
 
+        Script Reboot
+        {
+            TestScript = {
+                return (Test-Path HKLM:\SOFTWARE\MyMainKey\RebootKey)
+            }
+            SetScript = {
+                New-Item -Path HKLM:\SOFTWARE\MyMainKey\RebootKey -Force
+                 $global:DSCMachineStatus = 1
+            } # end resrouce
+            GetScript = { return @{result = 'result'}}
+            DependsOn = @("[WindowsFeature]RSAT-ADCS","[WindowsFeature]RSAT-ADCS-Mgmt")
+        }
+        <#
         xPendingReboot Reboot1
         {
             Name = "RebootServer"
             DependsOn = @("[WindowsFeature]RSAT-ADCS","[WindowsFeature]RSAT-ADCS-Mgmt")
         } # end resource
+        #>
     } # end node
 } # end configuration
 #endregion configuration
