@@ -357,7 +357,7 @@ Do
     Write-Output $header.SeparatorDouble
     $vmList.Name
     Write-Output $header.SeparatorSingle
-    $targetVMName = Read-Host "Enter target Widnows 2019 VM that will be configured as an PKI server (Active Directory Certificate Services)"
+    $targetVMName = Read-Host "Enter target Windows 2019 VM node to either configure as or reverted from a PKI server role (Active Directory Certificate Services)"
     Write-Output $header.SeparatorSingle
 } # end do
 Until ($targetVMName -in $vmlist.name)
