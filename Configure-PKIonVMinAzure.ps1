@@ -499,7 +499,7 @@ Write-Warning "Transcript logs are hosted in the directory: $LogDirectory to all
 Write-Warning "To examine, archive or remove old log files to recover storage space, run this command to open the log files location: Start-Process -FilePath $LogDirectory"
 Write-Warning "You may change the value of the `$modulePath variable in this script, currently at: $modulePath to a common file server hosted share if you prefer, i.e. \\<server.domain.com>\<share>\<log-directory>"
 Write-Output $SeparatorSingle
-Write-Output "To verify that the Certificate Server is installed log into the target server via RDP or Azure Bastion, then open a powershell console and type: certsrv.msc and press enter. The Certificate Authority MMC console shoul appear.
+Write-Output "To verify that the Certificate Server is installed log into the target server via RDP or Azure Bastion, then open a powershell console and type: certsrv.msc and press enter. The Certificate Authority MMC console should appear."
 
 #endregion
 
