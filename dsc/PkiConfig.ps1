@@ -101,6 +101,7 @@ Configuration PkiConfig
         {
             Name = "RebootServer"
             SkipCcmClientSDK = $true
+            PsDscRunAsCredential = $node.domainAdminCred
             DependsOn = @("[WindowsFeature]RSAT-ADCS","[WindowsFeature]RSAT-ADCS-Mgmt")
         } # end resource
     } # end node
