@@ -472,6 +472,9 @@ do
 } Until ($getDscConfigStatus.Status -eq 'Compliant')
 #endregion
 
+# Restart VM to apply the configuration.
+Restart-AzVM -ResourceGroupName $rgpName -Name $targetVMName -Verbose
+
 #region Display Summary
 $StopTimer = Get-Date -Verbose
 Write-Output "Calculating elapsed time..."
