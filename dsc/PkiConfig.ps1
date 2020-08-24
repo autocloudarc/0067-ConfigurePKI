@@ -96,7 +96,7 @@ Configuration PkiConfig
             PsDscRunAsCredential = $node.domainAdminCred
             DependsOn = "[WindowsFeature]ADCSCA"
         } # end resource
-
+        # https://stackoverflow.com/questions/36997392/configure-a-dsc-resource-to-restart
         Script Reboot
         {
             TestScript = {
