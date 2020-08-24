@@ -97,6 +97,7 @@ Configuration PkiConfig
             DependsOn = "[WindowsFeature]ADCSCA"
         } # end resource
         # https://stackoverflow.com/questions/36997392/configure-a-dsc-resource-to-restart
+        # https://github.com/PowerShell/xPendingReboot/issues/26
         xPendingReboot Reboot1
         {
             Name = "RebootServer"
