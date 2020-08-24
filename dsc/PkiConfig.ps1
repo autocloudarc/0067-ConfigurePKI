@@ -22,6 +22,7 @@ Configuration PkiConfig
             Ensure = $node.ensure
             Type = $node.fileType
             DestinationPath = $node.dirPki
+            Force = $true
             DependsOn = "[xDisk]ConfigureDataDisk"
         } # end resource
 
@@ -30,6 +31,7 @@ Configuration PkiConfig
             Ensure = $node.ensure
             Type = $node.fileType
             DestinationPath = $node.dirDb
+            Force = $true
             DependsOn = "[File]DirPki"
         } # end resource
 
@@ -38,6 +40,7 @@ Configuration PkiConfig
             Ensure = $node.ensure
             Type = $node.fileType
             DestinationPath = $node.dirLog
+            Force = $true
             DependsOn = "[File]DirPki"
         } # end resource
 
@@ -46,6 +49,7 @@ Configuration PkiConfig
             Ensure = $node.ensure
             Type = $node.fileType
             DestinationPath = $node.dirExport
+            Force = $true
             DependsOn = "[File]DirPki"
         } # end resource
 
