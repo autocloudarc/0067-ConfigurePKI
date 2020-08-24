@@ -469,7 +469,7 @@ do
     $getDscConfigStatus = Get-AzAutomationDscNodeReport -ResourceGroupName $rgpName -AutomationAccountName $aaaName -NodeId $dscNode.Id -Latest -Verbose
     $getDscConfigStatus
     Start-Sleep -Seconds 5 -Verbose
-} While ($getDscConfigStatus.Status -ne 'Compliant')
+} Until ($getDscConfigStatus.Status -eq 'Compliant')
 #endregion
 
 #region Display Summary
