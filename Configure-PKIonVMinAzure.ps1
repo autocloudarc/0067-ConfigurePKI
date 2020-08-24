@@ -22,6 +22,8 @@ PRE-REQUISITES:
 .PARAMETER includeUbuntu
 Inclue an Ubuntu server for this deployment.
 
+TASK-ITEM: Add parameters.
+
 .EXAMPLE
 .\Deploy-AzResourceGroup.ps1 -excludeWeb yes -excludeSql yes -excludeAds yes -excludePki yes -includeUbuntu yes -Verbose
 
@@ -430,7 +432,7 @@ Register-AzAutomationDscNode -ResourceGroupName $rgpName `
 -RebootNodeIfNeeded:$true `
 -AllowModuleOverwrite:$true `
 -ActionAfterReboot ContinueConfiguration `
--ConfigurationModeFrequenceyMins 15 `
+-ConfigurationModeFrequencyMins 15 `
 -RefreshFrequencyMins 30 `
 -NodeConfigurationName $nodeConfigurationName `
 -AzureVMResourceGroup $rgpName `
