@@ -371,6 +371,9 @@ $adminPassword = $adminCred.GetNetworkCredential().password
 New-AzAutomationCredential -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $domainAdminCred -Value $adminCred -Verbose
 #endregion
 
+# Remov
+Get-ChildItem -Path $LogDirectory -File | Where-Object {$_.Extension -ne '.log'} | Remove-Item -Force -ErrorAction SilentlyContinue -Verbose
+
 #region Retrieve Configuration
 Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBranch -Directory $sourceDirectory -Files $filesToDownload -DownloadTargetDirectory $LogDirectory -Verbose
 #endregion
