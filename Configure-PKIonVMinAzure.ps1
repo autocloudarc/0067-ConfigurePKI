@@ -371,7 +371,7 @@ $adminPassword = $adminCred.GetNetworkCredential().password
 New-AzAutomationCredential -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $domainAdminCred -Value $adminCred -Verbose
 #endregion
 
-# Remov
+# Cleanup *.ps1 and *.psd1 artifacts from previous execution
 Get-ChildItem -Path $LogDirectory -File | Where-Object {$_.Extension -ne '.log'} | Remove-Item -Force -ErrorAction SilentlyContinue -Verbose
 
 #region Retrieve Configuration
