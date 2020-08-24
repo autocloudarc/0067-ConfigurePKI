@@ -8,7 +8,7 @@ Configuration PkiConfig
     Import-DscResource -ModuleName xPendingReboot
     Import-DscResource -ModuleName xStorage
 
-    Node localhost
+    Node $AllNodes.NodeName
     {
         xDisk ConfigureDataDisk
         {
