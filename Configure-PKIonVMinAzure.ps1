@@ -372,6 +372,7 @@ New-AzAutomationCredential -ResourceGroupName $rgpName -AutomationAccountName $a
 #endregion
 
 # Cleanup *.ps1 and *.psd1 artifacts from previous execution
+Write-Output "Cleaning up DSC artifacts from previous script exectuion."
 Get-ChildItem -Path $LogDirectory -File | Where-Object {$_.Extension -ne '.log'} | Remove-Item -Force -ErrorAction SilentlyContinue -Verbose
 
 #region Retrieve Configuration
