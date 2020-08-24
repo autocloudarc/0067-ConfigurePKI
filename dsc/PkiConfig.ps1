@@ -61,7 +61,7 @@ Configuration PkiConfig
         AdcsCertificationAuthority ConfigureCA
         {
             IsSingleInstance = $node.singleInstance
-            CAType = $ndoe.eca
+            CAType = $node.eca
             Credential = $domainAdminCred
             Ensure = $node.ensure
             CACommonName = $node.CACommonName
