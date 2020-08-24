@@ -435,7 +435,7 @@ $nodeRegistration = $null
 Write-Output "Checking for node registration of VM: $targetVMName"
 $nodeRegistration = Get-AzAutomationDscNode -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $targetVMName
 
-if (-not($nodeRegistration))
+if (-not($nodeRegistration) -or ($nodeRegistration.Status -eq 'failed'))
 {
     Write-Output "VM: $targetVMName has not yet been registered as a node. Registering now..."
     Register-AzAutomationDscNode -ResourceGroupName $rgpName `
