@@ -63,6 +63,7 @@ Deploys an Azure automation lab infrastructure
 
 #>
 
+#region 02.00 Execute script
 [CmdletBinding()]
 param
 (
@@ -72,11 +73,10 @@ param
     [string]$sourceDirectory = "dsc",
     [string]$configurationFile = "PkiConfig.ps1",
     [string]$configDataFile = "PkiConfigData.psd1",
-    [string]$revertDataFile = "PkiRevertData.psd1",
-    [string[]]$filesToDownload = @($configurationFile,$configDataFile,$revertDataFile),
+    [string[]]$filesToDownload = @($configurationFile,$configDataFile),
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
-    [string]$rgpName = "rg10",
+    [string]$rgpName = "rg11",
     [string[]]$modulesForAzureAutomation = @("Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
     [string]$PSModuleRepository = "PSGallery",
     [string]$domainAdminCred = 'domainAdminCred'
@@ -330,7 +330,7 @@ Remove-ARMDeployPSModule -ModuleToRemove $azureNonPreferredModule -Verbose
 Get-ARMDeployPSModule -ModulesToInstall $localModulesToInstall -PSRepository $PSModuleRepository -Verbose
 #endregion
 
-#region Athenticate to Subscription
+#region 03.00 Athenticate to Subscription
 Write-Output "Your browser authentication prompt for your subscription may be opened in the background. Please resize this window to see it and log in."
 # Clear any possible cached credentials for other subscriptions
 Clear-AzContext
@@ -344,9 +344,9 @@ Do
 } #end Do
 Until ($Subscription -in (Get-AzSubscription).Name)
 Select-AzSubscription -SubscriptionName $Subscription -Verbose
-#endregion
+#endregion 03.00
 
-#region Prompt for target VM name
+#region 04.00 Select target VM
 Do
 {
     $vmList = Get-AzVM -ResourceGroupName $rgpName -Verbose
@@ -359,30 +359,29 @@ Do
     Write-Output $header.SeparatorSingle
 } # end do
 Until ($targetVMName -in $vmlist.name)
-#endregion
+#endregion 04.00
 
-#region Prompt for DSC credentials
+#region Step 05.00 Provide VM credentials
 $adminUserName = Read-Host "Enter administrator user name for PKI server configuration"
 $adminCred = Get-Credential -UserName $adminUserName -Message "Enter password for user: $adminUserName"
-$adminPassword = $adminCred.GetNetworkCredential().password
 # Send automation credential for DSC configuration to automation account
 New-AzAutomationCredential -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $domainAdminCred -Value $adminCred -Verbose
-#endregion
+#endregion 05.00
 
 # Cleanup *.ps1 and *.psd1 artifacts from previous execution
 Write-Output "Cleaning up DSC artifacts from previous script exectuion."
 Get-ChildItem -Path $LogDirectory -File | Where-Object {$_.Extension -ne '.log'} | Remove-Item -Force -ErrorAction SilentlyContinue -Verbose
 
-#region Retrieve Configuration
+#region 06.00 Retrieve artifacts
 Get-GitHubRepositoryFile -Owner $repoOwner -Repository $repoName -Branch $repoBranch -Directory $sourceDirectory -Files $filesToDownload -DownloadTargetDirectory $LogDirectory -Verbose
-#endregion
+#endregion 06.00
 
-#region Import Configuration
+#region 07.00 Import configuration
 $localConfigurationFilePath = Join-Path $LogDirectory -ChildPath $configurationFile
 Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGroupName $rgpName -SourcePath $localConfigurationFilePath -Published -Confirm:$false -LogVerbose $true -Verbose -Force
-#endregion
+#endregion 07.00
 
-#region Import DSC Resource modules into Automation account if it has not already been imported.
+#region 08.00 Import DSC Resource modules into Automation account if it has not already been imported.
 foreach ($automationModule in $modulesForAzureAutomation)
 {
     $moduleName = (Get-AzAutomationModule -AutomationAccountName $aaaName -Name $automationModule -ResourceGroupName $rgpName).Name
@@ -391,9 +390,9 @@ foreach ($automationModule in $modulesForAzureAutomation)
         New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzureAutomation -AutomationAccountName $aaaName -Verbose
     } # end if
 } # end foreach
-#endregion
+#endregion 08.00
 
-#region Compile Configuration
+#region 09.00 Compile configuration
 # https://docs.microsoft.com/en-us/azure/automation/automation-dsc-compile#compile-a-dsc-configuration-in-azure-state-configuration
 $configName = $configurationFile.Split(".")[0]
 
@@ -409,12 +408,10 @@ while($null -eq $CompilationJob.EndTime -and $null -eq $CompilationJob.Exception
 } # end while
 
 $CompilationJob | Get-AzAutomationDscCompilationJobOutput –Stream Any
-#endregion
+#endregion 09.00
 
-#region Onboard VM
+#region 10.00 Register node
 # https://docs.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-overview
-$aaaDscPullServerUrl = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).Endpoint
-$aaaDscPullServerKey = (Get-AzAutomationRegistrationInfo -ResourceGroupName $rgpName -AutomationAccountName $aaaName).PrimaryKey
 $nodeConfigurationName = ($CompilationJob).ConfigurationName + ".localhost"
 
 $nodeRegistration = $null
@@ -442,10 +439,9 @@ elseif ($nodeRegistration.Name -eq $targetVMName)
 {
     Write-Output "VM: $targetVMName has already been registered as a node. Skipping node registrtaion."
 } # end else
+#endregion 10.00
 
-#endregion
-
-#region Report Configuration
+#region 11.00 Get status
 # https://docs.microsoft.com/en-us/azure/automation/troubleshoot/desired-state-configuration
 # https://github.com/Azure/azure-powershell/issues/10404
 $dscNode = Get-AzAutomationDscNode -ResourceGroupName $rgpName -AutomationAccountName $aaaName -Name $targetVMName
@@ -457,7 +453,7 @@ do
     $getDscConfigStatus
     Start-Sleep -Seconds 5 -Verbose
 } Until ($getDscConfigStatus.Status -eq 'Compliant')
-#endregion
+#endregion 11.00
 
 # Restart VM to apply the configuration.
 Restart-AzVM -ResourceGroupName $rgpName -Name $targetVMName -Verbose
@@ -485,8 +481,12 @@ Write-Warning 'Get-AzResourceGroup -Name <YourResourceGroupName> | ForEach-Objec
 Write-Warning "Transcript logs are hosted in the directory: $LogDirectory to allow access for multiple users on this machine for diagnostic or auditing purposes."
 Write-Warning "To examine, archive or remove old log files to recover storage space, run this command to open the log files location: Start-Process -FilePath $LogDirectory"
 Write-Warning "You may change the value of the `$modulePath variable in this script, currently at: $modulePath to a common file server hosted share if you prefer, i.e. \\<server.domain.com>\<share>\<log-directory>"
+
+#region 11.00 Verify configuration
 Write-Output $SeparatorSingle
-Write-Output "To verify that the Certificate Server is installed log into the target server via RDP or Azure Bastion, then open a powershell console and type: certsrv.msc and press enter. The Certificate Authority MMC console should appear."
+Write-Output "To verify that the Certificate Server is installed log into the target server via RDP or Azure Bastion, then open a powershell console and type: certsrv.msc and press enter."
+Write-Output "The Certificate Authority MMC console should appear."
+#region 11.00
 
 #endregion
 
@@ -514,3 +514,4 @@ else
     $header.SeparatorDouble
 } # end else
 #endregion
+#endregion 02.00
