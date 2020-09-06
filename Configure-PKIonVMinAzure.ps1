@@ -385,9 +385,10 @@ Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGro
 foreach ($automationModule in $modulesForAzureAutomation)
 {
     $moduleName = (Get-AzAutomationModule -AutomationAccountName $aaaName -Name $automationModule -ResourceGroupName $rgpName).Name
+    # Install module if it doesn't already exist
     if (-not($moduleName -eq $automationModule))
     {
-        New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $modulesForAzureAutomation -AutomationAccountName $aaaName -Verbose
+        New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $automationModule -AutomationAccountName $aaaName -Verbose
     } # end if
 } # end foreach
 #endregion 08.00
