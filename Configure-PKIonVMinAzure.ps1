@@ -15,24 +15,19 @@ Configure a PKI server on an existing VM in Azure.
 This sript will configure an Active Directory Certificate Services on an existing Windows Server 2019 Server in Azure.
 
 PRE-REQUISITES:
-1. Before executing this script, ensure that you change the directory to the directory where the script is located. For example, if the script is in: c:\scripts\Deploy-AzResourceGroup.ps1 then
+1. Before executing this script, ensure that you change the directory to the directory where the script is located. For example, if the script is in: c:\scripts\Script.ps1 then
     change to this directory using the following command:
     Set-Location -Path c:\scripts
 
-.PARAMETER includeUbuntu
-Inclue an Ubuntu server for this deployment.
-
-TASK-ITEM: Add parameters.
-
 .EXAMPLE
-.\Deploy-AzResourceGroup.ps1 -excludeWeb yes -excludeSql yes -excludeAds yes -excludePki yes -includeUbuntu yes -Verbose
+. .\Configure-PKIonVMinAzure.ps1 -Verbose
 
 .INPUTS
 None
 
 .OUTPUTS
 The outputs generated from this script includes:
-1. A transcript log file to provide the full details of script execution. It will use the name format: Deploy-AzureResourceGroup-TRANSCRIPT-<Date-Time>.log
+1. A transcript log file to provide the full details of script execution. It will use the name format: <ScriptName>-TRANSCRIPT-<Date-Time>.log
 
 .NOTES
 LEGAL DISCLAIMER:
