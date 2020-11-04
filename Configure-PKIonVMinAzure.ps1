@@ -20,7 +20,7 @@ PRE-REQUISITES:
     Set-Location -Path c:\scripts
 
 .EXAMPLE
-. .\Configure-PKIonVMinAzure.ps1 -Verbose
+. .\Configure-PKIonVMinAzure.ps1 -rgpName <rgpName> -aaaName <aaaName> -Verbose
 
 .INPUTS
 None
@@ -379,7 +379,7 @@ Import-AzAutomationDscConfiguration -AutomationAccountName $aaaName -ResourceGro
 #region 08.00 Import DSC Resource modules into Automation account if it has not already been imported.
 foreach ($automationModule in $modulesForAzureAutomation)
 {
-    $moduleName = (Get-AzAutomationModule -AutomationAccountName $aaaName -Name $automationModule -ResourceGroupName $rgpName).Name
+    $moduleName = (Get-AzAutomationModule -AutomationAccountName $aaaName -Name $automationModule -ResourceGroupName $rgpName -ErrorAction SilentlyContinue).Name
     # Install module if it doesn't already exist
     if (-not($moduleName -eq $automationModule))
     {
