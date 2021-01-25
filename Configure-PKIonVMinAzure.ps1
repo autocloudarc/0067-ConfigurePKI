@@ -72,7 +72,7 @@ param
     [string]$configName = "PkiConfig",
     [string]$aaaName = "aaa-1c5dce57-10",
     [string]$rgpName = "rg11",
-    [string[]]$modulesForAzureAutomation = @("Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
+    [string[]]$modulesForAzureAutomation = @("Az.Accounts","Az.Automation","ActiveDirectoryCSDsc","CertificateDsc","xPendingReboot","xStorage"),
     [string]$PSModuleRepository = "PSGallery",
     [string]$domainAdminCred = 'domainAdminCred'
 ) # end param
@@ -385,6 +385,8 @@ foreach ($automationModule in $modulesForAzureAutomation)
     {
         New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $automationModule -AutomationAccountName $aaaName -Verbose
     } # end if
+    # Wait for 100 seconds to ensure each module has sufficient time to import to the modules asset of the automation account
+    Start-Sleep -Seconds 100
 } # end foreach
 #endregion 08.00
 
