@@ -384,9 +384,9 @@ foreach ($automationModule in $modulesForAzureAutomation)
     if (-not($moduleName -eq $automationModule))
     {
         New-AutomationAccountModules -ResourceGroupName $rgpName -Modules $automationModule -AutomationAccountName $aaaName -Verbose
+        # Wait for 100 seconds to ensure each module has sufficient time to import to the modules asset of the automation account
+        Start-Sleep -Seconds 100
     } # end if
-    # Wait for 100 seconds to ensure each module has sufficient time to import to the modules asset of the automation account
-    Start-Sleep -Seconds 100
 } # end foreach
 #endregion 08.00
 
